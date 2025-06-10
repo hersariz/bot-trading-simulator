@@ -3,7 +3,7 @@ import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 
 // Define API URL
 const API_URL = process.env.REACT_APP_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://bot-trading-simulator-6fic.vercel.app/api');
+  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://bot-trading-simulator-6fic.vercel.app');
 console.log('Using API URL:', API_URL); // Debug log
 
 // Create axios instance
@@ -11,14 +11,50 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 10000 // 10 second timeout
 });
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', error);
+    if (!error.response) {
+      console.error('Network Error Details:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL
+      });
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Export config service
 export const configService = {
   getConfig: async (): Promise<ConfigType> => {
-    const response = await api.get('/api/config');
-    return response.data;
+    try {
+      const response = await api.get('/api/config');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch config:', error);
+      // Return default config as fallback
+      return {
+        symbol: 'BTCUSDT',
+        timeframe: '1h',
+        quantity: 0.001,
+        leverage: 10,
+        stopLossPercent: 1,
+        takeProfitPercent: 2,
+        adxMinimum: 20,
+        plusDiThreshold: 25,
+        minusDiThreshold: 20,
+        trailingStop: false,
+        trailingStopPercent: 0.5,
+        marketDataSource: 'binance'
+      };
+    }
   },
   
   updateConfig: async (config: Partial<ConfigType>, createOrderNow: boolean = false): Promise<any> => {
