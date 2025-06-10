@@ -1,12 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 const config = require('./config');
 const configRoutes = require('./routes/configRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const marketDataRoutes = require('./routes/marketDataRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
-const testnetRoutes = require('./src/routes/testnet.routes');
+const testnetRoutes = require('./routes/testnet.routes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://bot-trading-simulator-6fic.vercel.app',
   'https://bot-trading-simulator.vercel.app',
+  'https://bot-trading-simulator-6fic-hersariz.vercel.app',
   // Allow requests with no origin (like mobile apps or curl requests)
   undefined,
   'null'
@@ -38,19 +40,33 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Log unauthorized origin attempts in production
+    // Log unauthorized origin attempts in production but allow them for now
     console.warn(`CORS blocked for origin: ${origin}`);
     return callback(null, true); // Allow anyway for now to troubleshoot
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
 }));
+
+// Log all requests for debugging in production
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Origin: ${req.get('origin') || 'N/A'}`);
+  next();
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
+
+// Pre-flight OPTIONS handling
+app.options('*', cors());
 
 // API routes
 app.use('/api/config', configRoutes);

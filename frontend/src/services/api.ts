@@ -1,32 +1,75 @@
 import axios from 'axios';
 import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 
-// Define API URL
+// Define API URL - gunakan URL absolut untuk produksi
+const isLocalhost = window.location.hostname === 'localhost';
 const API_URL = process.env.REACT_APP_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
+  (isLocalhost ? 'http://localhost:5000' : 'https://bot-trading-simulator-6fic.vercel.app');
+
 console.log('Using API URL:', API_URL); // Debug log
 
 // Create axios instance with baseURL that correctly handles API paths
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   },
-  timeout: 15000 // 15 second timeout
+  timeout: 20000, // 20 second timeout
+  withCredentials: false
 });
+
+// Add request interceptor untuk menambahkan timestamp (mencegah cache)
+api.interceptors.request.use(
+  config => {
+    if (config.method === 'get') {
+      config.params = {
+        ...config.params,
+        _t: Date.now() // tambahkan timestamp untuk mencegah caching
+      };
+    }
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  response => response,
+  response => {
+    console.log(`[API Response] ${response.status} ${response.config.url}`);
+    return response;
+  },
   error => {
     console.error('API Error:', error);
+    
+    // Cek jika error adalah timeout
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout. Server might be down or unreachable.');
+    }
+    
+    // Cek jika error adalah network error
     if (!error.response) {
       console.error('Network Error Details:', {
         url: error.config?.url,
         method: error.config?.method,
         baseURL: error.config?.baseURL
       });
+      
+      // Coba alternatif URL jika network error di produksi
+      if (!isLocalhost && error.config && error.config.url) {
+        console.log('Retrying with alternative API URL...');
+        const alternativeURL = 'https://bot-trading-simulator.vercel.app';
+        const retryConfig = {
+          ...error.config,
+          baseURL: alternativeURL
+        };
+        return axios(retryConfig);
+      }
     }
+    
     return Promise.reject(error);
   }
 );
@@ -58,8 +101,13 @@ export const configService = {
   },
   
   updateConfig: async (config: Partial<ConfigType>, createOrderNow: boolean = false): Promise<any> => {
-    const response = await api.post(`/api/config?createOrderNow=${createOrderNow}`, config);
-    return response.data;
+    try {
+      const response = await api.post(`/api/config?createOrderNow=${createOrderNow}`, config);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating config:', error);
+      throw error;
+    }
   }
 };
 
@@ -148,14 +196,27 @@ export const ordersService = {
   getOrders: async (): Promise<OrderType[]> => {
     try {
       const response = await api.get('/api/orders');
-      if (!response.data || typeof response.data === 'string') {
-        console.error('Invalid orders response format:', response.data);
-        throw new Error('Invalid order data received: ' + (typeof response.data === 'string' ? response.data.substring(0, 100) + '...' : JSON.stringify(response.data)));
+      
+      // Validasi format respons
+      if (!response.data) {
+        console.error('Empty response data');
+        return [];
       }
+      
+      // Periksa jika respons adalah string (HTML) atau bukan array
+      if (typeof response.data === 'string' || !Array.isArray(response.data)) {
+        console.error('Invalid orders response format:', 
+          typeof response.data === 'string' 
+            ? response.data.substring(0, 100) + '...' 
+            : JSON.stringify(response.data).substring(0, 100) + '...'
+        );
+        return [];
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching orders:', error);
-      throw error;
+      return []; // Return empty array instead of throwing
     }
   },
   
@@ -178,8 +239,25 @@ export const ordersService = {
 // Export positions service
 export const positionsService = {
   getPositions: async (): Promise<PositionType[]> => {
-    const response = await api.get('/api/positions');
-    return response.data;
+    try {
+      const response = await api.get('/api/positions');
+      
+      // Validasi format respons
+      if (!response.data) {
+        return [];
+      }
+      
+      // Periksa jika respons adalah string atau bukan array
+      if (typeof response.data === 'string' || !Array.isArray(response.data)) {
+        console.error('Invalid positions response format');
+        return [];
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching positions:', error);
+      return []; // Return empty array instead of throwing
+    }
   },
   
   createPosition: async (position: Partial<PositionType>): Promise<PositionType> => {

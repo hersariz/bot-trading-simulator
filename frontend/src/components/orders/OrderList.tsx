@@ -27,6 +27,7 @@ const OrderList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -40,21 +41,26 @@ const OrderList: React.FC = () => {
   }, []);
 
   const fetchOrders = async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    setError(null);
+    if (showLoading) {
+      setLoading(true);
+      setError(null);
+    }
+    
     try {
       const data = await ordersService.getOrders();
+      
       if (Array.isArray(data)) {
         setOrders(data);
+        setLastUpdated(new Date());
       } else {
         console.error('Invalid order data received:', data);
         setOrders([]);
         setError('Format data order tidak valid');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching orders:', err);
       setOrders([]);
-      setError('Gagal mengambil data order');
+      setError(`Gagal mengambil data order: ${err.message || 'Unknown error'}`);
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -86,17 +92,27 @@ const OrderList: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    } catch (err) {
+      console.warn('Error formatting date:', dateString);
+      return '-';
+    }
   };
 
   const formatPrice = (price: number | undefined) => {
     if (price === undefined || price === null) return '-';
     
-    return price.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6
-    });
+    try {
+      return price.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6
+      });
+    } catch (err) {
+      console.warn('Error formatting price:', price);
+      return '-';
+    }
   };
 
   const formatProfit = (profit: number | undefined | null) => {
@@ -123,19 +139,16 @@ const OrderList: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 3 }}>
-        {error}
-      </Alert>
-    );
-  }
-
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" component="h2">
           Order History
+          {lastUpdated && (
+            <Typography variant="caption" sx={{ ml: 2, color: 'text.secondary' }}>
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </Typography>
+          )}
         </Typography>
         <Button 
           variant="outlined" 
@@ -148,7 +161,13 @@ const OrderList: React.FC = () => {
         </Button>
       </Box>
       
-      {orders.length === 0 ? (
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {!error && orders.length === 0 ? (
         <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
           No orders found
         </Typography>
@@ -170,60 +189,70 @@ const OrderList: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Array.isArray(orders) && orders
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.symbol || '-'}</TableCell>
-                      <TableCell>
-                        {order.side ? (
-                          <Chip 
-                            label={order.side} 
-                            color={order.side === 'BUY' ? 'success' : 'error'} 
-                            size="small" 
-                          />
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>{order.quantity || '-'}</TableCell>
-                      <TableCell>{formatPrice(order.price)}</TableCell>
-                      <TableCell>
-                        {order.status ? (
-                          <Chip 
-                            label={order.status} 
-                            color={getStatusColor(order.status)} 
-                            size="small" 
-                            variant="outlined"
-                          />
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>{formatDate(order.entryTime)}</TableCell>
-                      <TableCell>{order.closeTime ? formatDate(order.closeTime) : '-'}</TableCell>
-                      <TableCell sx={{ 
-                        color: order.profit && order.profit > 0 ? 'success.main' : 
-                               order.profit && order.profit < 0 ? 'error.main' : 'text.primary'
-                      }}>
-                        {formatProfit(order.profit)}
-                      </TableCell>
-                      <TableCell sx={{ 
-                        color: order.profitPercent && order.profitPercent > 0 ? 'success.main' : 
-                               order.profitPercent && order.profitPercent < 0 ? 'error.main' : 'text.primary'
-                      }}>
-                        {order.profitPercent !== undefined ? `${formatProfit(order.profitPercent)}%` : '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                {Array.isArray(orders) && orders.length > 0 ? (
+                  orders
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((order) => (
+                      <TableRow key={order.id || `order-${Math.random()}`}>
+                        <TableCell>{order.symbol || '-'}</TableCell>
+                        <TableCell>
+                          {order.side ? (
+                            <Chip 
+                              label={order.side} 
+                              color={order.side.toUpperCase() === 'BUY' ? 'success' : 'error'} 
+                              size="small" 
+                            />
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>{order.quantity || '-'}</TableCell>
+                        <TableCell>{formatPrice(order.price)}</TableCell>
+                        <TableCell>
+                          {order.status ? (
+                            <Chip 
+                              label={order.status} 
+                              color={getStatusColor(order.status)} 
+                              size="small" 
+                              variant="outlined"
+                            />
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>{formatDate(order.entryTime)}</TableCell>
+                        <TableCell>{order.closeTime ? formatDate(order.closeTime) : '-'}</TableCell>
+                        <TableCell sx={{ 
+                          color: order.profit && order.profit > 0 ? 'success.main' : 
+                                 order.profit && order.profit < 0 ? 'error.main' : 'text.primary'
+                        }}>
+                          {formatProfit(order.profit)}
+                        </TableCell>
+                        <TableCell sx={{ 
+                          color: order.profitPercent && order.profitPercent > 0 ? 'success.main' : 
+                                 order.profitPercent && order.profitPercent < 0 ? 'error.main' : 'text.primary'
+                        }}>
+                          {order.profitPercent !== undefined ? `${formatProfit(order.profitPercent)}%` : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center">
+                      No orders found
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={Array.isArray(orders) ? orders.length : 0}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          {Array.isArray(orders) && orders.length > 0 && (
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={Array.isArray(orders) ? orders.length : 0}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          )}
         </>
       )}
     </Paper>
