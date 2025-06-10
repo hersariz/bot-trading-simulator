@@ -276,4 +276,63 @@ export const positionsService = {
   }
 };
 
+// Add testnet service
+export const testnetService = {
+  getConfig: async () => {
+    try {
+      console.log('Fetching testnet config');
+      const response = await api.get('/api/testnet/config');
+      console.log('Testnet config response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching testnet config:', error);
+      throw error;
+    }
+  },
+  
+  updateConfig: async (config: any) => {
+    try {
+      console.log('Updating testnet config:', config);
+      
+      // Coba dengan axios langsung, bukan instance api
+      const fullUrl = `${API_URL}/api/testnet/config`;
+      console.log('Using direct axios with URL:', fullUrl);
+      
+      const response = await axios.post(fullUrl, config, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('Testnet config update response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating testnet config:', error);
+      throw error;
+    }
+  },
+  
+  testConnection: async () => {
+    try {
+      const response = await api.get('/api/testnet/test-connection');
+      return response.data;
+    } catch (error) {
+      console.error('Error testing testnet connection:', error);
+      throw error;
+    }
+  },
+  
+  getBalance: async () => {
+    try {
+      const response = await api.get('/api/testnet/balance');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching testnet balance:', error);
+      throw error;
+    }
+  }
+};
+
 export default api; 

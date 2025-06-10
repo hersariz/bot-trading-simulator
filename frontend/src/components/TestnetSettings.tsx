@@ -17,7 +17,7 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import api from '../services/api';
+import api, { testnetService } from '../services/api';
 
 interface TestnetConfig {
   apiKey: string;
@@ -53,9 +53,12 @@ const TestnetSettings: React.FC = () => {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/testnet/config');
-      setConfig(response.data);
-      setNewType(response.data.type || 'futures');
+      // Gunakan testnetService yang baru
+      const response = await testnetService.getConfig();
+      if (response && response.apiKey) {
+        setConfig(response);
+        setNewType(response.type || 'futures');
+      }
     } catch (error: any) {
       console.error('Error fetching testnet config:', error);
       setMessage({
@@ -74,6 +77,8 @@ const TestnetSettings: React.FC = () => {
     }
 
     setLoading(true);
+    setMessage({ type: '', text: '' });
+    
     try {
       // Log untuk debugging
       console.log('Sending request to server:', {
@@ -82,21 +87,22 @@ const TestnetSettings: React.FC = () => {
         type: newType
       });
       
-      const response = await api.post('/api/testnet/config', {
+      // Gunakan testnetService yang baru
+      const response = await testnetService.updateConfig({
         apiKey: newApiKey,
         apiSecret: newApiSecret,
         type: newType,
       });
 
-      console.log('Server response:', response.data);
+      console.log('Server response:', response);
       
-      if (response.data.success) {
+      if (response.success) {
         setMessage({ type: 'success', text: 'Testnet configuration saved successfully' });
         fetchConfig();
         setNewApiKey('');
         setNewApiSecret('');
       } else {
-        setMessage({ type: 'error', text: response.data.error || 'Failed to save configuration' });
+        setMessage({ type: 'error', text: response.error || 'Failed to save configuration' });
       }
     } catch (error: any) {
       console.error('Error saving testnet config:', error);
@@ -117,9 +123,10 @@ const TestnetSettings: React.FC = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      const response = await api.get('/api/testnet/test-connection');
+      // Gunakan testnetService yang baru
+      const response = await testnetService.testConnection();
       
-      if (response.data.success) {
+      if (response.success) {
         setMessage({
           type: 'success',
           text: 'Successfully connected to Binance Testnet'
@@ -127,7 +134,7 @@ const TestnetSettings: React.FC = () => {
       } else {
         setMessage({
           type: 'error',
-          text: response.data.message || 'Failed to connect to Testnet'
+          text: response.message || 'Failed to connect to Testnet'
         });
       }
     } catch (error: any) {
@@ -146,12 +153,13 @@ const TestnetSettings: React.FC = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      const response = await api.get('/api/testnet/balance');
+      // Gunakan testnetService yang baru
+      const response = await testnetService.getBalance();
       
-      if (response.data.success) {
+      if (response.success) {
         console.log('Balance data received:', response.data);
         // Menyimpan balance data untuk ditampilkan
-        setAccountBalance(response.data.data);
+        setAccountBalance(response.data);
         setMessage({
           type: 'success',
           text: 'Successfully retrieved account balance'
@@ -159,7 +167,7 @@ const TestnetSettings: React.FC = () => {
       } else {
         setMessage({
           type: 'error',
-          text: response.data.error || 'Failed to get account balance'
+          text: response.error || 'Failed to get account balance'
         });
       }
     } catch (error: any) {
