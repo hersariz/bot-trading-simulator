@@ -44,9 +44,16 @@ const OrderList: React.FC = () => {
     setError(null);
     try {
       const data = await ordersService.getOrders();
-      setOrders(data);
+      if (Array.isArray(data)) {
+        setOrders(data);
+      } else {
+        console.error('Invalid order data received:', data);
+        setOrders([]);
+        setError('Format data order tidak valid');
+      }
     } catch (err) {
       console.error('Error fetching orders:', err);
+      setOrders([]);
       setError('Gagal mengambil data order');
     } finally {
       if (showLoading) setLoading(false);
@@ -163,7 +170,7 @@ const OrderList: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {orders
+                {Array.isArray(orders) && orders
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((order) => (
                     <TableRow key={order.id}>
@@ -211,7 +218,7 @@ const OrderList: React.FC = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={orders.length}
+            count={Array.isArray(orders) ? orders.length : 0}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
