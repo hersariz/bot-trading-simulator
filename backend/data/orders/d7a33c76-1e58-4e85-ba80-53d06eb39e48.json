@@ -1,0 +1,16 @@
+{
+  "source": "BOT",
+  "symbol": "BTCUSDT",
+  "id": "d7a33c76-1e58-4e85-ba80-53d06eb39e48",
+  "type": "MARKET",
+  "price": 109300,
+  "leverage": 10,
+  "timestamp": "2025-06-10T13:52:31.3500253+07:00",
+  "quantity": 0.001,
+  "status": "OPEN",
+  "side": "SELL",
+  "entryTime": "2025-06-10T13:52:31.3500253+07:00",
+  "updatedAt": "2025-06-10T14:04:16.910Z",
+  "profit": 0,
+  "profitPercent": 0
+}

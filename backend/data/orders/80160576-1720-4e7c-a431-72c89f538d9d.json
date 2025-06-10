@@ -1,0 +1,21 @@
+{
+  "id": "80160576-1720-4e7c-a431-72c89f538d9d",
+  "symbol": "BTCUSDT",
+  "action": "BUY",
+  "price_entry": 109748.12,
+  "tp_price": 111943.0824,
+  "sl_price": 108650.6388,
+  "leverage": 10,
+  "timeframe": "5m",
+  "signal": {
+    "plusDI": 37.66296222194844,
+    "minusDI": 0,
+    "adx": 27.23482399574331
+  },
+  "timestamp": "2025-06-10T13:27:33.921Z",
+  "status": "OPEN",
+  "profit": -3457.69,
+  "profitPercent": -3.15,
+  "closeTime": null,
+  "updatedAt": "2025-06-10T14:04:16.901Z"
+}

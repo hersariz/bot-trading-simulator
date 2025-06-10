@@ -1,0 +1,16 @@
+{
+  "id": "47c11836-0d4c-49ef-a3e6-a59e387d9bfa",
+  "symbol": "BTCUSDT",
+  "side": "BUY",
+  "type": "MARKET",
+  "quantity": 0.001,
+  "price": 35250.75,
+  "leverage": 10,
+  "entryTime": "2025-06-10T08:09:02.640Z",
+  "status": "OPEN",
+  "source": "MANUAL",
+  "timestamp": "2025-06-10T08:09:02.661Z",
+  "updatedAt": "2025-06-10T14:04:16.908Z",
+  "profit": 0,
+  "profitPercent": 0
+}

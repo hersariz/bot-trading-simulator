@@ -1,0 +1,33 @@
+{
+  "name": "bot-trading-simulator-backend",
+  "version": "1.0.0",
+  "description": "Backend untuk Bot Trading Simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "simulator:start": "node src/scripts/start-simulator.js",
+    "check-orders": "node src/scripts/check-orders.js",
+    "check-orders:once": "node src/scripts/check-orders.js --once",
+    "sync-testnet": "node src/scripts/sync-testnet.js",
+    "sync-testnet:once": "node src/scripts/sync-testnet.js --once",
+    "build": "mkdir -p dist && cp -r src data server.js package.json dist/"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
