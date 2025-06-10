@@ -3,7 +3,7 @@ import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 
 // Define API URL
 const API_URL = process.env.REACT_APP_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://bot-trading-simulator-api.vercel.app');
+  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://bot-trading-simulator-6fic.vercel.app/api');
 console.log('Using API URL:', API_URL); // Debug log
 
 // Create axios instance
