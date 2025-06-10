@@ -1,0 +1,26 @@
+{
+  "name": "bot-trading-simulator",
+  "version": "1.0.0",
+  "description": "Bot Trading Simulator dengan integrasi Binance Testnet",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/app.js",
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\""
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "trading",
+    "bot",
+    "simulator",
+    "binance",
+    "testnet"
+  ],
+  "author": "Hersa Rizky",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^8.0.1"
+  }
+} 
