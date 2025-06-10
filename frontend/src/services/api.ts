@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 
-// Define API URL - gunakan URL absolut untuk produksi
+// Define API URL - gunakan URL sesuai dengan server yang digabungkan
 const isLocalhost = window.location.hostname === 'localhost';
 const API_URL = process.env.REACT_APP_API_URL || 
-  (isLocalhost ? 'http://localhost:5000' : 'https://bot-trading-simulator-6fic.vercel.app');
+  (isLocalhost ? 'http://localhost:5000' : '');
 
 console.log('Using API URL:', API_URL); // Debug log
 
@@ -57,27 +57,22 @@ api.interceptors.response.use(
         method: error.config?.method,
         baseURL: error.config?.baseURL
       });
-      
-      // Coba alternatif URL jika network error di produksi
-      if (!isLocalhost && error.config && error.config.url) {
-        console.log('Retrying with alternative API URL...');
-        const alternativeURL = 'https://bot-trading-simulator.vercel.app';
-        const retryConfig = {
-          ...error.config,
-          baseURL: alternativeURL
-        };
-        return axios(retryConfig);
-      }
     }
     
     return Promise.reject(error);
   }
 );
 
+// Utility function untuk debug request sebelum kirim
+const debugRequest = (url: string, method: string, data?: any) => {
+  console.log(`[Debug] ${method} ${url}`, data ? { data } : '');
+};
+
 // Export config service
 export const configService = {
   getConfig: async (): Promise<ConfigType> => {
     try {
+      debugRequest('/api/config', 'GET');
       const response = await api.get('/api/config');
       return response.data;
     } catch (error) {
@@ -102,6 +97,7 @@ export const configService = {
   
   updateConfig: async (config: Partial<ConfigType>, createOrderNow: boolean = false): Promise<any> => {
     try {
+      debugRequest(`/api/config?createOrderNow=${createOrderNow}`, 'POST', config);
       const response = await api.post(`/api/config?createOrderNow=${createOrderNow}`, config);
       return response.data;
     } catch (error) {
@@ -114,6 +110,7 @@ export const configService = {
 // Export webhook service
 export const webhookService = {
   getWebhookUrl: async (): Promise<{ url: string; token: string }> => {
+    debugRequest('/api/webhook/info', 'GET');
     const response = await api.get('/api/webhook/info');
     return response.data;
   }
@@ -122,11 +119,13 @@ export const webhookService = {
 // Export market data service
 export const marketService = {
   getMarketData: async (symbol: string): Promise<MarketDataType> => {
+    debugRequest(`/api/market/data?symbol=${symbol}`, 'GET');
     const response = await api.get(`/api/market/data?symbol=${symbol}`);
     return response.data;
   },
   
   getCurrentPrice: async (symbol: string): Promise<{ symbol: string; price: number; source: string }> => {
+    debugRequest(`/api/market/price/${symbol}`, 'GET');
     const response = await api.get(`/api/market/price/${symbol}`);
     return response.data;
   },
@@ -136,9 +135,9 @@ export const marketService = {
     interval: string, 
     limit?: number
   ): Promise<{ symbol: string; interval: string; candles: any[]; source: string }> => {
-    const response = await api.get(`/api/market/historical`, {
-      params: { symbol, interval, limit }
-    });
+    const params = { symbol, interval, limit };
+    debugRequest('/api/market/historical', 'GET', params);
+    const response = await api.get(`/api/market/historical`, { params });
     return response.data;
   },
   
@@ -149,7 +148,7 @@ export const marketService = {
     useDummyData: boolean;
     createdAt: string | null;
   }> => {
-    console.log('Fetching API key status from:', `${API_URL}/api/market/api-key`); // Debug log
+    debugRequest('/api/market/api-key', 'GET');
     const response = await api.get('/api/market/api-key');
     return response.data;
   },
@@ -161,11 +160,13 @@ export const marketService = {
     useDummyData: boolean;
     createdAt: string;
   }> => {
+    debugRequest('/api/market/generate-api-key', 'POST');
     const response = await api.post('/api/market/generate-api-key');
     return response.data;
   },
   
   deleteApiKey: async (): Promise<{ message: string }> => {
+    debugRequest('/api/market/api-key', 'DELETE');
     const response = await api.delete('/api/market/api-key');
     return response.data;
   },
@@ -174,6 +175,7 @@ export const marketService = {
     message: string; 
     useDummyData: boolean 
   }> => {
+    debugRequest('/api/market/toggle-dummy-data', 'POST', { useDummyData });
     const response = await api.post('/api/market/toggle-dummy-data', { useDummyData });
     return response.data;
   },
@@ -184,6 +186,7 @@ export const marketService = {
     message: string;
     useDummyData: boolean;
   }> => {
+    debugRequest('/api/market/test-source', 'GET', { source });
     const response = await api.get('/api/market/test-source', {
       params: { source }
     });
@@ -195,6 +198,7 @@ export const marketService = {
 export const ordersService = {
   getOrders: async (): Promise<OrderType[]> => {
     try {
+      debugRequest('/api/orders', 'GET');
       const response = await api.get('/api/orders');
       
       // Validasi format respons
@@ -221,16 +225,19 @@ export const ordersService = {
   },
   
   createOrder: async (order: Partial<OrderType>): Promise<OrderType> => {
+    debugRequest('/api/orders', 'POST', order);
     const response = await api.post('/api/orders', order);
     return response.data;
   },
   
   updateOrder: async (id: string, order: Partial<OrderType>): Promise<OrderType> => {
+    debugRequest(`/api/orders/${id}`, 'PUT', order);
     const response = await api.put(`/api/orders/${id}`, order);
     return response.data;
   },
   
   deleteOrder: async (id: string): Promise<{ message: string }> => {
+    debugRequest(`/api/orders/${id}`, 'DELETE');
     const response = await api.delete(`/api/orders/${id}`);
     return response.data;
   }
@@ -240,6 +247,7 @@ export const ordersService = {
 export const positionsService = {
   getPositions: async (): Promise<PositionType[]> => {
     try {
+      debugRequest('/api/positions', 'GET');
       const response = await api.get('/api/positions');
       
       // Validasi format respons
@@ -261,16 +269,19 @@ export const positionsService = {
   },
   
   createPosition: async (position: Partial<PositionType>): Promise<PositionType> => {
+    debugRequest('/api/positions', 'POST', position);
     const response = await api.post('/api/positions', position);
     return response.data;
   },
   
   updatePosition: async (id: string, position: Partial<PositionType>): Promise<PositionType> => {
+    debugRequest(`/api/positions/${id}`, 'PUT', position);
     const response = await api.put(`/api/positions/${id}`, position);
     return response.data;
   },
   
   closePosition: async (id: string): Promise<PositionType> => {
+    debugRequest(`/api/positions/${id}/close`, 'POST');
     const response = await api.post(`/api/positions/${id}/close`);
     return response.data;
   }
@@ -280,9 +291,8 @@ export const positionsService = {
 export const testnetService = {
   getConfig: async () => {
     try {
-      console.log('Fetching testnet config');
+      debugRequest('/api/testnet/config', 'GET');
       const response = await api.get('/api/testnet/config');
-      console.log('Testnet config response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching testnet config:', error);
@@ -292,21 +302,10 @@ export const testnetService = {
   
   updateConfig: async (config: any) => {
     try {
-      console.log('Updating testnet config:', config);
+      debugRequest('/api/testnet/config', 'POST', config);
       
-      // Coba dengan axios langsung, bukan instance api
-      const fullUrl = `${API_URL}/api/testnet/config`;
-      console.log('Using direct axios with URL:', fullUrl);
-      
-      const response = await axios.post(fullUrl, config, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        timeout: 30000
-      });
-      
-      console.log('Testnet config update response:', response.data);
+      // Gunakan API instance yang dibuat di atas
+      const response = await api.post('/api/testnet/config', config);
       return response.data;
     } catch (error) {
       console.error('Error updating testnet config:', error);
@@ -316,6 +315,7 @@ export const testnetService = {
   
   testConnection: async () => {
     try {
+      debugRequest('/api/testnet/test-connection', 'GET');
       const response = await api.get('/api/testnet/test-connection');
       return response.data;
     } catch (error) {
@@ -326,6 +326,7 @@ export const testnetService = {
   
   getBalance: async () => {
     try {
+      debugRequest('/api/testnet/balance', 'GET');
       const response = await api.get('/api/testnet/balance');
       return response.data;
     } catch (error) {

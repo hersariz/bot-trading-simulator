@@ -1,18 +1,19 @@
 {
   "name": "bot-trading-simulator",
   "version": "1.0.0",
-  "description": "Trading bot simulator for crypto trading strategies",
-  "main": "index.js",
+  "description": "Trading bot simulator with UI",
+  "main": "combined-server.js",
   "scripts": {
-    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
-    "start:frontend": "cd frontend && npm start",
-    "start:backend": "cd backend && npm start",
+    "start": "node combined-server.js",
+    "dev": "nodemon combined-server.js",
     "build": "cd frontend && npm run build",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-vercel": "cd frontend && npm install && npm run build",
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=16.0.0"
   },
   "keywords": [
     "trading",
@@ -23,8 +24,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@binance/connector": "^3.6.1",
-    "binance": "^2.15.21",
-    "concurrently": "^8.2.0"
+    "@binance/connector": "^3.2.0",
+    "axios": "^1.6.7",
+    "binance": "^2.8.17",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
   }
 }

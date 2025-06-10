@@ -1,34 +1,15 @@
 {
   "version": 2,
   "builds": [
-    { 
-      "src": "frontend/package.json", 
-      "use": "@vercel/static-build", 
-      "config": { 
-        "distDir": "build",
-        "buildCommand": "npm run build-vercel"
-      } 
-    },
     {
-      "src": "backend/index.js",
+      "src": "combined-server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
-    { 
-      "src": "/api/(.*)", 
-      "dest": "/backend/index.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": "86400"
-      }
-    },
-    { 
-      "src": "/(.*)", 
-      "dest": "/frontend/$1" 
+    {
+      "src": "/(.*)",
+      "dest": "/combined-server.js"
     }
   ]
 } 
