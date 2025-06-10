@@ -6,7 +6,7 @@ const configRoutes = require('./routes/configRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const marketDataRoutes = require('./routes/marketDataRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
-const testnetRoutes = require('./src/routes/testnet.routes');
+const testnetRoutes = require('./routes/testnet.routes');
 
 const app = express();
 
@@ -17,9 +17,15 @@ app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS for frontend application
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://bot-trading-simulator-6fic.vercel.app',
+    'https://bot-trading-simulator.vercel.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 // API routes

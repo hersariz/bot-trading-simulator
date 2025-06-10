@@ -23,6 +23,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@binance/connector": "^3.6.1",
+    "binance": "^2.15.21",
     "concurrently": "^8.2.0"
   }
-} 
+}

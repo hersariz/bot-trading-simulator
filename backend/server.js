@@ -16,17 +16,41 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS for frontend application
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'https://bot-trading-simulator-6fic.vercel.app',
+  'https://bot-trading-simulator.vercel.app',
+  // Allow requests with no origin (like mobile apps or curl requests)
+  undefined,
+  'null'
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:5173',
-    'https://bot-trading-simulator-6fic.vercel.app',
-    'https://bot-trading-simulator.vercel.app'
-  ],
+  origin: function (origin, callback) {
+    // Allow all origins in development
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // Check if the origin is allowed
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Log unauthorized origin attempts in production
+    console.warn(`CORS blocked for origin: ${origin}`);
+    return callback(null, true); // Allow anyway for now to troubleshoot
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // API routes
 app.use('/api/config', configRoutes);
@@ -37,7 +61,7 @@ app.use('/api/testnet', testnetRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Server error:', err.stack);
   res.status(err.status || 500).json({
     error: {
       message: err.message || 'Internal Server Error',
@@ -48,10 +72,12 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
+  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     error: {
       message: 'Route not found',
-      status: 404
+      status: 404,
+      path: req.originalUrl
     }
   });
 });

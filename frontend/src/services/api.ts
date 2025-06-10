@@ -3,16 +3,16 @@ import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 
 // Define API URL
 const API_URL = process.env.REACT_APP_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://bot-trading-simulator-6fic.vercel.app');
+  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
 console.log('Using API URL:', API_URL); // Debug log
 
-// Create axios instance
+// Create axios instance with baseURL that correctly handles API paths
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 10000 // 10 second timeout
+  timeout: 15000 // 15 second timeout
 });
 
 // Add response interceptor for error handling
@@ -146,8 +146,17 @@ export const marketService = {
 // Export orders service
 export const ordersService = {
   getOrders: async (): Promise<OrderType[]> => {
-    const response = await api.get('/api/orders');
-    return response.data;
+    try {
+      const response = await api.get('/api/orders');
+      if (!response.data || typeof response.data === 'string') {
+        console.error('Invalid orders response format:', response.data);
+        throw new Error('Invalid order data received: ' + (typeof response.data === 'string' ? response.data.substring(0, 100) + '...' : JSON.stringify(response.data)));
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
+    }
   },
   
   createOrder: async (order: Partial<OrderType>): Promise<OrderType> => {
