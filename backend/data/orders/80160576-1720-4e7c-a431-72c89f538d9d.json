@@ -13,9 +13,10 @@
     "adx": 27.23482399574331
   },
   "timestamp": "2025-06-10T13:27:33.921Z",
-  "status": "OPEN",
-  "profit": -8364.3,
-  "profitPercent": -7.62,
-  "closeTime": null,
-  "updatedAt": "2025-06-10T14:27:17.102Z"
+  "status": "CLOSED",
+  "profit": -11258.37,
+  "profitPercent": -10.26,
+  "closeTime": "2025-06-10T14:28:35.335Z",
+  "updatedAt": "2025-06-10T14:28:35.336Z",
+  "closeReason": "SL hit"
 }
