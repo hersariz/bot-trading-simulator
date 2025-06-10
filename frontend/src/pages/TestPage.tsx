@@ -82,7 +82,7 @@ const TestPage: React.FC = () => {
       </Box>
       
       <Grid container spacing={3}>
-        <Grid size={12}>
+        <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
             <Typography variant="h6" gutterBottom>
               Test API Connections
@@ -102,7 +102,7 @@ const TestPage: React.FC = () => {
             <Divider sx={{ my: 3 }} />
             
             <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Grid item xs={12} md={4}>
                 <Typography variant="subtitle1" gutterBottom>
                   Config API
                 </Typography>
@@ -125,7 +125,7 @@ const TestPage: React.FC = () => {
                 )}
               </Grid>
               
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Grid item xs={12} md={4}>
                 <Typography variant="subtitle1" gutterBottom>
                   Market Data API
                 </Typography>
@@ -167,7 +167,7 @@ const TestPage: React.FC = () => {
                 )}
               </Grid>
               
-              <Grid size={{ xs: 12, md: 4 }}>
+              <Grid item xs={12} md={4}>
                 <Typography variant="subtitle1" gutterBottom>
                   Orders API
                 </Typography>
@@ -202,7 +202,7 @@ const TestPage: React.FC = () => {
           </Paper>
         </Grid>
         
-        <Grid size={12}>
+        <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
             <Typography variant="h6" gutterBottom>
               Common Issues & Troubleshooting

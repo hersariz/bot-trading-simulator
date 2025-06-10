@@ -65,7 +65,7 @@ const ActiveConfig: React.FC = () => {
       <Divider sx={{ mb: 2 }} />
       
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Trading Pair
@@ -76,7 +76,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Timeframe
@@ -87,7 +87,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Quantity
@@ -98,7 +98,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Leverage
@@ -116,7 +116,7 @@ const ActiveConfig: React.FC = () => {
       </Typography>
       
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Stop Loss
@@ -127,7 +127,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Take Profit
@@ -138,7 +138,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               Trailing Stop
@@ -166,7 +166,7 @@ const ActiveConfig: React.FC = () => {
       </Typography>
       
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               ADX Minimum
@@ -177,7 +177,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               +DI Threshold
@@ -188,7 +188,7 @@ const ActiveConfig: React.FC = () => {
           </Box>
         </Grid>
         
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" color="text.secondary">
               -DI Threshold

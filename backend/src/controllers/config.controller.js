@@ -98,7 +98,7 @@ const updateConfig = async (req, res) => {
     });
     
     if (missingFields.length > 0) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
         message: `Missing required fields: ${missingFields.join(', ')}`
       });

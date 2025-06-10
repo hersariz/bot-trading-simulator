@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
       
       <Grid container spacing={3}>
         {/* Market Data */}
-        <Grid size={12}>
+        <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
             <Typography variant="h5" component="h2" gutterBottom>
               Market Data
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
             ) : marketData ? (
               <>
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid item xs={12} md={4}>
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="subtitle1" color="text.secondary">
                         Symbol
@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
                     </Box>
                   </Grid>
                   
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid item xs={12} md={4}>
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="subtitle1" color="text.secondary">
                         Current Price
@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
                     </Box>
                   </Grid>
                   
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid item xs={12} md={4}>
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="subtitle1" color="text.secondary">
                         Last Updated
@@ -157,12 +157,12 @@ const Dashboard: React.FC = () => {
         </Grid>
         
         {/* Active Configuration */}
-        <Grid size={12}>
+        <Grid item xs={12}>
           <ActiveConfig />
         </Grid>
         
         {/* Order History */}
-        <Grid size={12}>
+        <Grid item xs={12}>
           <OrderList />
         </Grid>
       </Grid>

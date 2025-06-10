@@ -175,7 +175,7 @@ const ConfigForm: React.FC = () => {
       
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="Symbol"
@@ -187,7 +187,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
           
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="Timeframe"
@@ -199,7 +199,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
           
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="Quantity"
@@ -213,7 +213,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
           
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <Typography gutterBottom>Leverage: {config.leverage || 0}x</Typography>
             <Slider
               value={config.leverage ?? DEFAULT_CONFIG.leverage}
@@ -227,7 +227,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
           
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="Stop Loss"
@@ -244,7 +244,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
           
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="Take Profit"
@@ -261,7 +261,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="+DI Threshold"
@@ -275,7 +275,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="-DI Threshold"
@@ -289,7 +289,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <TextField
               fullWidth
               label="ADX Minimum"
@@ -303,7 +303,7 @@ const ConfigForm: React.FC = () => {
             />
           </Grid>
           
-          <Grid size={12}>
+          <Grid xs={12}>
             <FormControlLabel
               control={
                 <Switch
@@ -318,7 +318,7 @@ const ConfigForm: React.FC = () => {
           </Grid>
           
           {config.trailingStop && (
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Trailing Stop Percent"
@@ -336,7 +336,7 @@ const ConfigForm: React.FC = () => {
             </Grid>
           )}
           
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid xs={12} md={6}>
             <FormControl fullWidth margin="normal">
               <InputLabel id="market-data-source-label">Market Data Source</InputLabel>
               <Select
@@ -374,7 +374,7 @@ const ConfigForm: React.FC = () => {
             )}
           </Grid>
           
-          <Grid size={12}>
+          <Grid xs={12}>
             <FormControlLabel
               control={
                 <Checkbox
@@ -391,7 +391,7 @@ const ConfigForm: React.FC = () => {
             </Typography>
           </Grid>
           
-          <Grid size={12}>
+          <Grid xs={12}>
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
               <Button
                 variant="contained"

@@ -1,15 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "npm install && npm run build",
+  "installCommand": "npm install",
   "outputDirectory": "frontend/build",
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/app.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  "framework": null
 } 
