@@ -1,10 +1,11 @@
 import axios from 'axios';
 import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 
-// Define API URL - gunakan URL sesuai dengan server yang digabungkan
+// Define API URL untuk produksi dan development
 const isLocalhost = window.location.hostname === 'localhost';
+const vercelUrl = 'https://bot-trading-simulator-6fic.vercel.app';
 const API_URL = process.env.REACT_APP_API_URL || 
-  (isLocalhost ? 'http://localhost:5000' : '');
+  (isLocalhost ? 'http://localhost:5000' : vercelUrl);
 
 console.log('Using API URL:', API_URL); // Debug log
 
@@ -28,6 +29,12 @@ api.interceptors.request.use(
         _t: Date.now() // tambahkan timestamp untuk mencegah caching
       };
     }
+    
+    // Pastikan URL benar untuk produksi
+    if (!isLocalhost && !config.url?.startsWith('http')) {
+      console.log(`[API URL Correction] Using production URL for ${config.url}`);
+    }
+    
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
@@ -217,21 +224,22 @@ export const ordersService = {
       
       // Format baru: response.data.orders (objek dengan success flag)
       if (response.data.success && Array.isArray(response.data.orders)) {
+        console.log('Using new response format with success flag');
         return response.data.orders;
       }
       
-      // Format lama: langsung array (untuk kompatibilitas dengan versi lama)
+      // Format lama: response.data (array langsung)
       if (Array.isArray(response.data)) {
+        console.log('Using legacy direct array response format');
         return response.data;
       }
       
-      console.error('Invalid orders response format:', 
-        JSON.stringify(response.data).substring(0, 100) + '...'
-      );
+      // Format tidak dikenal
+      console.error('Unknown response format:', typeof response.data, JSON.stringify(response.data).substring(0, 100) + '...');
       return [];
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      return []; // Return empty array instead of throwing
+      console.error('Failed to fetch orders:', error);
+      return [];
     }
   },
   

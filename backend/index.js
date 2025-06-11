@@ -18,10 +18,22 @@ module.exports = (req, res) => {
     return;
   }
   
-  // Fix untuk masalah testnet config route
+  // Log request details for debugging
+  console.log('[Vercel Serverless] Request details:', { 
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    body: req.body || 'no body'
+  });
+  
+  // Fix for testnet/config route - handle direct access
   if (req.url === '/api/testnet/config' && req.method === 'POST') {
-    console.log('Handling special case for testnet config POST');
-    return app._router.handle(req, res);
+    console.log('[Vercel Serverless] Handling special case for testnet config POST');
+    
+    const testnetController = require('./controllers/testnet.controller');
+    if (testnetController && typeof testnetController.updateConfig === 'function') {
+      return testnetController.updateConfig(req, res);
+    }
   }
   
   // Handle all other requests normally

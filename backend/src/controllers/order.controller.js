@@ -12,6 +12,11 @@ const testnetSyncService = require('../services/testnet-sync.service');
  */
 const getAllOrders = async (req, res) => {
   try {
+    console.log('[Order Controller] getAllOrders called');
+    
+    // Set content type header to ensure JSON response
+    res.setHeader('Content-Type', 'application/json');
+    
     // Check if there are query parameters for filtering
     const { symbol, status, updateProfits } = req.query;
     
@@ -105,14 +110,19 @@ const getAllOrders = async (req, res) => {
       return standardizedOrder;
     });
     
+    // Log response for debugging
+    console.log(`[Order Controller] Returning ${orders.length} orders`);
+    
     // Format response - wrap orders in object with success flag for consistency
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       orders: orders
     });
   } catch (error) {
     console.error('Error in getAllOrders controller:', error);
-    res.status(500).json({ 
+    // Set content type header to ensure JSON response even for errors
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(500).json({ 
       success: false,
       error: 'Failed to retrieve orders' 
     });
