@@ -24,8 +24,7 @@ import {
   Alert
 } from '@mui/material';
 import { ConfigType } from '../../types';
-import { configService } from '../../services/api';
-import axios from 'axios';
+import { configService, marketService } from '../../services/api';
 
 const DEFAULT_CONFIG: ConfigType = {
   symbol: 'BTCUSDT',
@@ -152,10 +151,8 @@ const ConfigForm: React.FC = () => {
     
     try {
       const source = config.marketDataSource || 'binance';
-      const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/market/test-source`, {
-        params: { source }
-      });
-      setTestResult(response.data);
+      const response = await marketService.testConnection(source);
+      setTestResult(response);
     } catch (error) {
       console.error('Error testing connection:', error);
       setTestResult({ 
