@@ -49,4 +49,4 @@ module.exports = (req, res) => {
   }
   // If app is initialized, let it handle the request
   return app(req, res);
-}; 
+};
