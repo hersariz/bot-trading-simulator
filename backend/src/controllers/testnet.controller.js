@@ -47,9 +47,36 @@ const manualTestSignal = async (req, res) => {
   }
 };
 
+/**
+ * Run simulation based on current config
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const runSimulation = async (req, res) => {
+  try {
+    // NOTE: This is a placeholder implementation.
+    // The actual simulation logic should be more sophisticated.
+    console.log('Received request to run simulation with body:', req.body);
+
+    // For now, just return a success message.
+    res.status(200).json({
+      success: true,
+      message: 'Simulation run initiated successfully.',
+      data: req.body
+    });
+  } catch (error) {
+    console.error('Error running simulation:', error);
+    res.status(500).json({
+      success: false,
+      message: `Failed to run simulation: ${error.message}`
+    });
+  }
+};
+
 module.exports = {
   // existing exports
   placeTradingSignalOrder,
   manualTestSignal,
+  runSimulation,
   // other exports
 }; 

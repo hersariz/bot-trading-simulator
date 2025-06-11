@@ -59,4 +59,11 @@ router.get('/balance', testnetController.getBalance);
  */
 router.get('/manual-test', testnetController.manualTestSignal);
 
+/**
+ * @route POST /api/testnet/run-simulation
+ * @desc Run simulation based on current config
+ * @access Public
+ */
+router.post('/run-simulation', testnetController.runSimulation);
+
 module.exports = router; 
