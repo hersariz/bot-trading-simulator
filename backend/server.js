@@ -3,10 +3,10 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const config = require('./config');
-const configRoutes = require('./routes/configRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const marketDataRoutes = require('./routes/marketDataRoutes');
-const webhookRoutes = require('./routes/webhookRoutes');
+const configRoutes = require('./routes/config.routes');
+const orderRoutes = require('./routes/order.routes');
+const marketDataRoutes = require('./routes/market.routes');
+const webhookRoutes = require('./routes/webhook.routes');
 const testnetRoutes = require('./routes/testnet.routes');
 
 const app = express();

@@ -30,9 +30,28 @@ module.exports = (req, res) => {
   if (req.url === '/api/testnet/config' && req.method === 'POST') {
     console.log('[Vercel Serverless] Handling special case for testnet config POST');
     
-    const testnetController = require('./controllers/testnet.controller');
+    // Menggunakan path yang benar berdasarkan struktur direktori
+    let testnetController;
+    try {
+      // Coba import dari path /src/controllers (struktur lokal)
+      testnetController = require('./src/controllers/testnet.controller');
+    } catch (err) {
+      try {
+        // Jika gagal, coba import dari /controllers (struktur GitHub)
+        testnetController = require('./controllers/testnet.controller');
+      } catch (err2) {
+        console.error('[Vercel Serverless] Failed to import testnet controller:', err2);
+      }
+    }
+    
     if (testnetController && typeof testnetController.updateConfig === 'function') {
       return testnetController.updateConfig(req, res);
+    } else {
+      console.error('[Vercel Serverless] testnetController not found or updateConfig not a function');
+      return res.status(500).json({
+        success: false,
+        error: 'Internal server error: Controller not found'
+      });
     }
   }
   

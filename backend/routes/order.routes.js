@@ -2,7 +2,25 @@
  * Routes for order endpoints
  */
 const express = require('express');
-const orderController = require('../src/controllers/order.controller');
+let orderController;
+
+// Coba impor dari kedua lokasi untuk mendukung struktur direktori yang berbeda
+try {
+  orderController = require('../src/controllers/order.controller');
+} catch (error) {
+  try {
+    orderController = require('../controllers/order.controller');
+  } catch (innerError) {
+    console.error('Failed to import order controller:', innerError);
+    // Fallback controller kosong untuk mencegah crash
+    orderController = {
+      getAllOrders: (req, res) => res.status(500).json({ success: false, error: 'Controller not loaded correctly' }),
+      getOrderById: (req, res) => res.status(500).json({ success: false, error: 'Controller not loaded correctly' }),
+      updateOrderStatus: (req, res) => res.status(500).json({ success: false, error: 'Controller not loaded correctly' }),
+      deleteOrder: (req, res) => res.status(500).json({ success: false, error: 'Controller not loaded correctly' })
+    };
+  }
+}
 
 const router = express.Router();
 

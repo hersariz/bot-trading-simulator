@@ -20,7 +20,7 @@ const api = axios.create({
   withCredentials: false
 });
 
-// Add request interceptor untuk menambahkan timestamp (mencegah cache)
+// Add request interceptor untuk menambahkan timestamp (mencegah cache) dan memperbaiki URL
 api.interceptors.request.use(
   config => {
     if (config.method === 'get') {
@@ -30,12 +30,24 @@ api.interceptors.request.use(
       };
     }
     
-    // Pastikan URL benar untuk produksi
+    // Pastikan URL benar untuk produksi dan testing
     if (!isLocalhost && !config.url?.startsWith('http')) {
-      console.log(`[API URL Correction] Using production URL for ${config.url}`);
+      // Log untuk debugging
+      console.log(`[API URL Correction] Using ${API_URL} for ${config.url}`);
+      
+      // Pastikan selalu ada baseURL
+      if (!config.baseURL) {
+        config.baseURL = API_URL;
+      }
     }
     
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+    // Koreksi otomatis path market-data yang berubah jadi market
+    if (config.url?.includes('/api/market-data')) {
+      config.url = config.url.replace('/api/market-data', '/api/market');
+      console.log(`[API URL Correction] Fixed market data URL: ${config.url}`);
+    }
+    
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   error => {
