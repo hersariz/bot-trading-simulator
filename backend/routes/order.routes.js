@@ -37,4 +37,4 @@ router.put('/:orderId/status', orderController.updateOrderStatus);
 // DELETE /orders/:orderId - Delete order
 router.delete('/:orderId', orderController.deleteOrder);
 
-module.exports = router; 
+module.exports = router;
