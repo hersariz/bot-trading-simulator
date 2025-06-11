@@ -4,8 +4,7 @@ import { MarketDataType, OrderType, PositionType, ConfigType } from '../types';
 // Define API URL untuk produksi dan development
 const isLocalhost = window.location.hostname === 'localhost';
 const vercelUrl = 'https://bot-trading-simulator-6fic.vercel.app';
-const API_URL = process.env.REACT_APP_API_URL || 
-  (isLocalhost ? 'http://localhost:5000' : vercelUrl);
+const API_URL = isLocalhost ? 'http://localhost:5000' : vercelUrl;
 
 console.log('Using API URL:', API_URL); // Debug log
 
@@ -30,7 +29,7 @@ api.interceptors.request.use(
       };
     }
     
-    // Pastikan URL benar untuk produksi dan testing
+    // Pastikan URL benar untuk produksi
     if (!isLocalhost && !config.url?.startsWith('http')) {
       // Log untuk debugging
       console.log(`[API URL Correction] Using ${API_URL} for ${config.url}`);
@@ -76,6 +75,14 @@ api.interceptors.response.use(
         method: error.config?.method,
         baseURL: error.config?.baseURL
       });
+    } else {
+      // Log detail response error jika ada
+      console.error('Response Error Details:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        headers: error.response.headers
+      });
     }
     
     return Promise.reject(error);
@@ -85,6 +92,31 @@ api.interceptors.response.use(
 // Utility function untuk debug request sebelum kirim
 const debugRequest = (url: string, method: string, data?: any) => {
   console.log(`[Debug] ${method} ${url}`, data ? { data } : '');
+};
+
+// Export testnet service
+export const testnetService = {
+  getConfig: async (): Promise<any> => {
+    try {
+      debugRequest('/api/testnet/config', 'GET');
+      const response = await api.get('/api/testnet/config');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch testnet config:', error);
+      throw error;
+    }
+  },
+  
+  runSimulation: async (data: any): Promise<any> => {
+    try {
+      debugRequest('/api/testnet/run-simulation', 'POST', data);
+      const response = await api.post('/api/testnet/run-simulation', data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to run testnet simulation:', error);
+      throw error;
+    }
+  }
 };
 
 // Export config service
@@ -250,8 +282,19 @@ export const ordersService = {
       console.error('Unknown response format:', typeof response.data, JSON.stringify(response.data).substring(0, 100) + '...');
       return [];
     } catch (error) {
-      console.error('Failed to fetch orders:', error);
+      console.error('Error fetching orders:', error);
       return [];
+    }
+  },
+  
+  getOrderById: async (orderId: string): Promise<OrderType | null> => {
+    try {
+      debugRequest(`/api/orders/${orderId}`, 'GET');
+      const response = await api.get(`/api/orders/${orderId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching order ${orderId}:`, error);
+      return null;
     }
   },
   
@@ -261,15 +304,21 @@ export const ordersService = {
     return response.data;
   },
   
-  updateOrder: async (id: string, order: Partial<OrderType>): Promise<OrderType> => {
-    debugRequest(`/api/orders/${id}`, 'PUT', order);
-    const response = await api.put(`/api/orders/${id}`, order);
+  updateOrder: async (orderId: string, updates: Partial<OrderType>): Promise<OrderType> => {
+    debugRequest(`/api/orders/${orderId}`, 'PUT', updates);
+    const response = await api.put(`/api/orders/${orderId}`, updates);
     return response.data;
   },
   
-  deleteOrder: async (id: string): Promise<{ message: string }> => {
-    debugRequest(`/api/orders/${id}`, 'DELETE');
-    const response = await api.delete(`/api/orders/${id}`);
+  deleteOrder: async (orderId: string): Promise<{ message: string }> => {
+    debugRequest(`/api/orders/${orderId}`, 'DELETE');
+    const response = await api.delete(`/api/orders/${orderId}`);
+    return response.data;
+  },
+  
+  cancelAllOrders: async (): Promise<{ message: string; count: number }> => {
+    debugRequest('/api/orders/cancel-all', 'POST');
+    const response = await api.post('/api/orders/cancel-all');
     return response.data;
   }
 };
@@ -277,108 +326,81 @@ export const ordersService = {
 // Export positions service
 export const positionsService = {
   getPositions: async (): Promise<PositionType[]> => {
-    try {
-      debugRequest('/api/positions', 'GET');
-      const response = await api.get('/api/positions');
-      
-      // Validasi format respons
-      if (!response.data) {
-        return [];
-      }
-      
-      // Periksa jika respons adalah string (HTML)
-      if (typeof response.data === 'string') {
-        console.error('Invalid positions response format:', 
-          response.data.substring(0, 100) + '...'
-        );
-        return [];
-      }
-      
-      // Format baru: response.data.positions (objek dengan success flag)
-      if (response.data.success && Array.isArray(response.data.positions)) {
-        return response.data.positions;
-      }
-      
-      // Format lama: langsung array (untuk kompatibilitas dengan versi lama)
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      
-      console.error('Invalid positions response format:', 
-        JSON.stringify(response.data).substring(0, 100) + '...'
-      );
-      return [];
-    } catch (error) {
-      console.error('Error fetching positions:', error);
-      return []; // Return empty array instead of throwing
-    }
-  },
-  
-  createPosition: async (position: Partial<PositionType>): Promise<PositionType> => {
-    debugRequest('/api/positions', 'POST', position);
-    const response = await api.post('/api/positions', position);
+    debugRequest('/api/positions', 'GET');
+    const response = await api.get('/api/positions');
     return response.data;
   },
   
-  updatePosition: async (id: string, position: Partial<PositionType>): Promise<PositionType> => {
-    debugRequest(`/api/positions/${id}`, 'PUT', position);
-    const response = await api.put(`/api/positions/${id}`, position);
+  getPositionById: async (positionId: string): Promise<PositionType> => {
+    debugRequest(`/api/positions/${positionId}`, 'GET');
+    const response = await api.get(`/api/positions/${positionId}`);
     return response.data;
   },
   
-  closePosition: async (id: string): Promise<PositionType> => {
-    debugRequest(`/api/positions/${id}/close`, 'POST');
-    const response = await api.post(`/api/positions/${id}/close`);
+  closePosition: async (positionId: string): Promise<any> => {
+    debugRequest(`/api/positions/${positionId}/close`, 'POST');
+    const response = await api.post(`/api/positions/${positionId}/close`);
+    return response.data;
+  },
+  
+  closeAllPositions: async (): Promise<any> => {
+    debugRequest('/api/positions/close-all', 'POST');
+    const response = await api.post('/api/positions/close-all');
     return response.data;
   }
 };
 
-// Add testnet service
-export const testnetService = {
-  getConfig: async () => {
-    try {
-      debugRequest('/api/testnet/config', 'GET');
-      const response = await api.get('/api/testnet/config');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching testnet config:', error);
-      throw error;
-    }
+// Export accounts service
+export const accountsService = {
+  getAccountInfo: async (): Promise<any> => {
+    debugRequest('/api/accounts/info', 'GET');
+    const response = await api.get('/api/accounts/info');
+    return response.data;
   },
   
-  updateConfig: async (config: any) => {
-    try {
-      debugRequest('/api/testnet/config', 'POST', config);
-      
-      // Gunakan API instance yang dibuat di atas
-      const response = await api.post('/api/testnet/config', config);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating testnet config:', error);
-      throw error;
-    }
+  resetAccount: async (): Promise<any> => {
+    debugRequest('/api/accounts/reset', 'POST');
+    const response = await api.post('/api/accounts/reset');
+    return response.data;
+  }
+};
+
+// Export estrategies service
+export const strategiesService = {
+  getStrategies: async (): Promise<any[]> => {
+    debugRequest('/api/strategies', 'GET');
+    const response = await api.get('/api/strategies');
+    return response.data;
   },
   
-  testConnection: async () => {
-    try {
-      debugRequest('/api/testnet/test-connection', 'GET');
-      const response = await api.get('/api/testnet/test-connection');
-      return response.data;
-    } catch (error) {
-      console.error('Error testing testnet connection:', error);
-      throw error;
-    }
+  getStrategyById: async (strategyId: string): Promise<any> => {
+    debugRequest(`/api/strategies/${strategyId}`, 'GET');
+    const response = await api.get(`/api/strategies/${strategyId}`);
+    return response.data;
   },
   
-  getBalance: async () => {
-    try {
-      debugRequest('/api/testnet/balance', 'GET');
-      const response = await api.get('/api/testnet/balance');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching testnet balance:', error);
-      throw error;
-    }
+  updateStrategy: async (strategyId: string, data: any): Promise<any> => {
+    debugRequest(`/api/strategies/${strategyId}`, 'PUT', data);
+    const response = await api.put(`/api/strategies/${strategyId}`, data);
+    return response.data;
+  },
+  
+  createStrategy: async (data: any): Promise<any> => {
+    debugRequest('/api/strategies', 'POST', data);
+    const response = await api.post('/api/strategies', data);
+    return response.data;
+  },
+  
+  deleteStrategy: async (strategyId: string): Promise<any> => {
+    debugRequest(`/api/strategies/${strategyId}`, 'DELETE');
+    const response = await api.delete(`/api/strategies/${strategyId}`);
+    return response.data;
+  },
+  
+  toggleStrategy: async (strategyId: string, isActive: boolean): Promise<any> => {
+    debugRequest(`/api/strategies/${strategyId}/toggle`, 'POST', { isActive });
+    const response = await api.post(`/api/strategies/${strategyId}/toggle`, { isActive });
+    return response.data;
   }
 };
 

@@ -44,6 +44,8 @@ const TestnetSettings: React.FC = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [accountBalance, setAccountBalance] = useState<any>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
+  const [runningSimulation, setRunningSimulation] = useState(false);
+  const [simulationResults, setSimulationResults] = useState<any>(null);
 
   // Fetch current config on component mount
   useEffect(() => {
@@ -53,11 +55,18 @@ const TestnetSettings: React.FC = () => {
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      // Gunakan testnetService yang baru
-      const response = await testnetService.getConfig();
-      if (response && response.apiKey) {
-        setConfig(response);
-        setNewType(response.type || 'futures');
+      // Gunakan endpoint yang benar
+      const response = await api.get('/api/testnet/config');
+      
+      if (response && response.data) {
+        console.log('Config received:', response.data);
+        setConfig({
+          apiKey: response.data.apiKey || '',
+          apiSecret: response.data.secret || '',
+          type: response.data.type || 'futures',
+          isConfigured: true
+        });
+        setNewType(response.data.type || 'futures');
       }
     } catch (error: any) {
       console.error('Error fetching testnet config:', error);
@@ -87,22 +96,22 @@ const TestnetSettings: React.FC = () => {
         type: newType
       });
       
-      // Gunakan testnetService yang baru
-      const response = await testnetService.updateConfig({
+      // Gunakan endpoint yang benar
+      const response = await api.post('/api/testnet/config', {
         apiKey: newApiKey,
         apiSecret: newApiSecret,
         type: newType,
       });
 
-      console.log('Server response:', response);
+      console.log('Server response:', response.data);
       
-      if (response.success) {
+      if (response.data && !response.data.error) {
         setMessage({ type: 'success', text: 'Testnet configuration saved successfully' });
         fetchConfig();
         setNewApiKey('');
         setNewApiSecret('');
       } else {
-        setMessage({ type: 'error', text: response.error || 'Failed to save configuration' });
+        setMessage({ type: 'error', text: response.data?.error || 'Failed to save configuration' });
       }
     } catch (error: any) {
       console.error('Error saving testnet config:', error);
@@ -123,10 +132,10 @@ const TestnetSettings: React.FC = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      // Gunakan testnetService yang baru
-      const response = await testnetService.testConnection();
+      // Gunakan endpoint yang benar
+      const response = await api.get('/api/testnet/connection-test');
       
-      if (response.success) {
+      if (response.data && !response.data.error) {
         setMessage({
           type: 'success',
           text: 'Successfully connected to Binance Testnet'
@@ -134,7 +143,7 @@ const TestnetSettings: React.FC = () => {
       } else {
         setMessage({
           type: 'error',
-          text: response.message || 'Failed to connect to Testnet'
+          text: response.data?.error || 'Failed to connect to Testnet'
         });
       }
     } catch (error: any) {
@@ -153,10 +162,10 @@ const TestnetSettings: React.FC = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      // Gunakan testnetService yang baru
-      const response = await testnetService.getBalance();
+      // Gunakan endpoint yang benar
+      const response = await api.get('/api/testnet/balance');
       
-      if (response.success) {
+      if (response.data && !response.data.error) {
         console.log('Balance data received:', response.data);
         // Menyimpan balance data untuk ditampilkan
         setAccountBalance(response.data);
@@ -167,7 +176,7 @@ const TestnetSettings: React.FC = () => {
       } else {
         setMessage({
           type: 'error',
-          text: response.error || 'Failed to get account balance'
+          text: response.data?.error || 'Failed to get account balance'
         });
       }
     } catch (error: any) {
@@ -178,6 +187,58 @@ const TestnetSettings: React.FC = () => {
       });
     } finally {
       setBalanceLoading(false);
+    }
+  };
+  
+  const runSimulation = async () => {
+    setRunningSimulation(true);
+    setSimulationResults(null);
+    setMessage({ type: '', text: '' });
+    
+    try {
+      // Simulasi data untuk pengujian
+      const simulationData = {
+        strategy: {
+          name: 'ADX Crossover',
+          timeframe: '1h'
+        },
+        params: {
+          adxPeriod: 14,
+          adxThreshold: 25,
+          stopLoss: 2,
+          takeProfit: 3
+        },
+        accountConfig: {
+          initialBalance: 10000,
+          leverage: 5,
+          tradingFee: 0.075
+        }
+      };
+      
+      // Gunakan endpoint yang benar
+      const response = await api.post('/api/testnet/run-simulation', simulationData);
+      
+      if (response.data && !response.data.error) {
+        console.log('Simulation results:', response.data);
+        setSimulationResults(response.data);
+        setMessage({
+          type: 'success',
+          text: 'Simulation completed successfully'
+        });
+      } else {
+        setMessage({
+          type: 'error',
+          text: response.data?.error || 'Failed to run simulation'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error running simulation:', error);
+      setMessage({
+        type: 'error',
+        text: `Error running simulation: ${error.response?.data?.error || error.message || 'Unknown error'}`
+      });
+    } finally {
+      setRunningSimulation(false);
     }
   };
 
@@ -260,51 +321,84 @@ const TestnetSettings: React.FC = () => {
                     onClick={fetchBalance}
                     disabled={balanceLoading}
                   >
-                    {balanceLoading ? <CircularProgress size={24} /> : 'Get Balance'}
+                    {balanceLoading ? <CircularProgress size={24} /> : 'Check Balance'}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={runSimulation}
+                    disabled={runningSimulation}
+                  >
+                    {runningSimulation ? <CircularProgress size={24} /> : 'Run Test Simulation'}
                   </Button>
                 </Box>
               )}
               
               {accountBalance && (
-                <Box mt={4}>
-                  <Typography variant="h6" gutterBottom>
-                    Account Balance
-                  </Typography>
-                  <Box sx={{ maxHeight: '300px', overflow: 'auto' }}>
-                    {config.type === 'futures' ? (
+                <Box mt={3}>
+                  <Typography variant="h6" gutterBottom>Account Balance</Typography>
+                  <Card variant="outlined">
+                    <CardContent>
                       <Grid container spacing={2}>
-                        {accountBalance.balances?.map((asset: any, index: number) => (
-                          asset.walletBalance > 0 && (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
-                              <Card variant="outlined">
-                                <CardContent>
-                                  <Typography variant="h6">{asset.asset}</Typography>
-                                  <Typography>Wallet: {parseFloat(asset.walletBalance).toFixed(6)}</Typography>
-                                  <Typography>Available: {parseFloat(asset.availableBalance).toFixed(6)}</Typography>
-                                </CardContent>
-                              </Card>
-                            </Grid>
-                          )
+                        {Object.entries(accountBalance).map(([asset, balance]: [string, any]) => (
+                          <Grid item xs={12} sm={6} md={4} key={asset}>
+                            <Typography variant="subtitle1">{asset}</Typography>
+                            <Typography variant="body1">
+                              Free: {balance.free}
+                            </Typography>
+                            <Typography variant="body1">
+                              Used: {balance.used}
+                            </Typography>
+                            <Typography variant="body1">
+                              Total: {balance.total}
+                            </Typography>
+                          </Grid>
                         ))}
                       </Grid>
-                    ) : (
+                    </CardContent>
+                  </Card>
+                </Box>
+              )}
+              
+              {simulationResults && (
+                <Box mt={3}>
+                  <Typography variant="h6" gutterBottom>Simulation Results</Typography>
+                  <Card variant="outlined">
+                    <CardContent>
                       <Grid container spacing={2}>
-                        {accountBalance.balances?.map((asset: any, index: number) => (
-                          (parseFloat(asset.free) > 0 || parseFloat(asset.locked) > 0) && (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
-                              <Card variant="outlined">
-                                <CardContent>
-                                  <Typography variant="h6">{asset.asset}</Typography>
-                                  <Typography>Free: {parseFloat(asset.free).toFixed(6)}</Typography>
-                                  <Typography>Locked: {parseFloat(asset.locked).toFixed(6)}</Typography>
-                                </CardContent>
-                              </Card>
-                            </Grid>
-                          )
-                        ))}
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="subtitle1">Profit/Loss</Typography>
+                          <Typography 
+                            variant="h4" 
+                            color={simulationResults.balance?.profit > 0 ? 'success.main' : 'error.main'}
+                          >
+                            {simulationResults.balance?.profitPercentage}% 
+                            ({simulationResults.balance?.profit} USDT)
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="subtitle1">Trades</Typography>
+                          <Typography variant="h4">{simulationResults.metrics?.trades || 0}</Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle1" gutterBottom>Orders</Typography>
+                          {simulationResults.orders && simulationResults.orders.length > 0 ? (
+                            <Box sx={{ maxHeight: '200px', overflowY: 'auto' }}>
+                              {simulationResults.orders.map((order: any, index: number) => (
+                                <Box key={index} mb={1} p={1} sx={{ backgroundColor: 'background.paper', borderRadius: 1 }}>
+                                  <Typography variant="body2">
+                                    {order.side.toUpperCase()} {order.amount} {order.symbol} @ {order.price}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          ) : (
+                            <Typography variant="body2">No orders executed</Typography>
+                          )}
+                        </Grid>
                       </Grid>
-                    )}
-                  </Box>
+                    </CardContent>
+                  </Card>
                 </Box>
               )}
             </Box>
@@ -321,7 +415,7 @@ const TestnetSettings: React.FC = () => {
                     onChange={(e) => setNewApiKey(e.target.value)}
                     fullWidth
                     margin="normal"
-                    placeholder="Enter Binance Testnet API Key"
+                    helperText="Enter your Binance Testnet API Key"
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -332,32 +426,44 @@ const TestnetSettings: React.FC = () => {
                     fullWidth
                     margin="normal"
                     type="password"
-                    placeholder="Enter Binance Testnet API Secret"
+                    helperText="Enter your Binance Testnet API Secret"
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth margin="normal">
-                    <RadioGroup
-                      row
+                    <InputLabel id="type-label">Type</InputLabel>
+                    <Select
+                      labelId="type-label"
                       value={newType}
                       onChange={(e) => setNewType(e.target.value)}
+                      label="Type"
                     >
-                      <FormControlLabel value="futures" control={<Radio />} label="Futures" />
-                      <FormControlLabel value="spot" control={<Radio />} label="Spot" />
-                    </RadioGroup>
+                      <MenuItem value="spot">Spot</MenuItem>
+                      <MenuItem value="futures">Futures</MenuItem>
+                    </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={saveConfig}
-                    disabled={loading || !newApiKey || !newApiSecret}
-                  >
-                    {loading ? <CircularProgress size={24} /> : 'Save Configuration'}
-                  </Button>
-                </Grid>
               </Grid>
+              <Box mt={2}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={saveConfig}
+                  disabled={loading}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Save Configuration'}
+                </Button>
+              </Box>
+            </Box>
+            
+            <Box mt={4}>
+              <Typography variant="body2" color="text.secondary">
+                Note: You need to create a Binance Testnet account to get API keys. Visit the{' '}
+                <a href="https://testnet.binance.vision/" target="_blank" rel="noopener noreferrer">
+                  Binance Testnet
+                </a>{' '}
+                website to create an account and generate API keys.
+              </Typography>
             </Box>
           </>
         )}
