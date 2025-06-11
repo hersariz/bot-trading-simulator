@@ -2,7 +2,7 @@
  * Routes for order endpoints
  */
 const express = require('express');
-const orderController = require('../controllers/order.controller');
+const orderController = require('../src/controllers/order.controller');
 
 const router = express.Router();
 

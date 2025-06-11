@@ -23,27 +23,26 @@ const allowedOrigins = [
   'https://bot-trading-simulator-6fic.vercel.app',
   'https://bot-trading-simulator.vercel.app',
   'https://bot-trading-simulator-6fic-hersariz.vercel.app',
+  // Add any Vercel preview URLs that might be used
+  'https://bot-trading-simulator-git-main-hersariz.vercel.app',
+  'https://bot-trading-simulator-hersariz.vercel.app',
   // Allow requests with no origin (like mobile apps or curl requests)
   undefined,
   'null'
 ];
 
+// Use simpler CORS config for troubleshooting
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow all origins in development
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    // Check if the origin is allowed
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // Log unauthorized origin attempts in production but allow them for now
-    console.warn(`CORS blocked for origin: ${origin}`);
-    return callback(null, true); // Allow anyway for now to troubleshoot
-  },
+  origin: '*', // Allow all origins for troubleshooting
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+}));
+
+// Pre-flight OPTIONS handling for all routes
+app.options('*', cors({
+  origin: '*', // Allow all origins for troubleshooting
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   credentials: true,
@@ -64,9 +63,6 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
-
-// Pre-flight OPTIONS handling
-app.options('*', cors());
 
 // API routes
 app.use('/api/config', configRoutes);
