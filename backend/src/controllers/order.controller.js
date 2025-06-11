@@ -105,8 +105,11 @@ const getAllOrders = async (req, res) => {
       return standardizedOrder;
     });
     
-    // Format response - return array directly instead of wrapping in object
-    res.status(200).json(orders);
+    // Format response - wrap orders in object with success flag for consistency
+    res.status(200).json({
+      success: true,
+      orders: orders
+    });
   } catch (error) {
     console.error('Error in getAllOrders controller:', error);
     res.status(500).json({ 

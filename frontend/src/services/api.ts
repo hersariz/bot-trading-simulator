@@ -207,17 +207,28 @@ export const ordersService = {
         return [];
       }
       
-      // Periksa jika respons adalah string (HTML) atau bukan array
-      if (typeof response.data === 'string' || !Array.isArray(response.data)) {
+      // Periksa jika respons adalah string (HTML)
+      if (typeof response.data === 'string') {
         console.error('Invalid orders response format:', 
-          typeof response.data === 'string' 
-            ? response.data.substring(0, 100) + '...' 
-            : JSON.stringify(response.data).substring(0, 100) + '...'
+          response.data.substring(0, 100) + '...'
         );
         return [];
       }
       
-      return response.data;
+      // Format baru: response.data.orders (objek dengan success flag)
+      if (response.data.success && Array.isArray(response.data.orders)) {
+        return response.data.orders;
+      }
+      
+      // Format lama: langsung array (untuk kompatibilitas dengan versi lama)
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      console.error('Invalid orders response format:', 
+        JSON.stringify(response.data).substring(0, 100) + '...'
+      );
+      return [];
     } catch (error) {
       console.error('Error fetching orders:', error);
       return []; // Return empty array instead of throwing
@@ -255,13 +266,28 @@ export const positionsService = {
         return [];
       }
       
-      // Periksa jika respons adalah string atau bukan array
-      if (typeof response.data === 'string' || !Array.isArray(response.data)) {
-        console.error('Invalid positions response format');
+      // Periksa jika respons adalah string (HTML)
+      if (typeof response.data === 'string') {
+        console.error('Invalid positions response format:', 
+          response.data.substring(0, 100) + '...'
+        );
         return [];
       }
       
-      return response.data;
+      // Format baru: response.data.positions (objek dengan success flag)
+      if (response.data.success && Array.isArray(response.data.positions)) {
+        return response.data.positions;
+      }
+      
+      // Format lama: langsung array (untuk kompatibilitas dengan versi lama)
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      console.error('Invalid positions response format:', 
+        JSON.stringify(response.data).substring(0, 100) + '...'
+      );
+      return [];
     } catch (error) {
       console.error('Error fetching positions:', error);
       return []; // Return empty array instead of throwing
