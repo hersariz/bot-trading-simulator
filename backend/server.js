@@ -1,105 +1,52 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const path = require('path');
-const config = require('./config');
-const configRoutes = require('./routes/config.routes');
-const orderRoutes = require('./routes/order.routes');
-const marketDataRoutes = require('./routes/market.routes');
-const webhookRoutes = require('./routes/webhook.routes');
-const testnetRoutes = require('./routes/testnet.routes');
 
-const app = express();
+let app;
+let serverInitializationError = null;
 
-// Middleware
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+try {
+  // All require statements that might fail are inside this block
+  const configRoutes = require('./routes/config.routes');
+  const orderRoutes = require('./routes/order.routes');
+  const marketDataRoutes = require('./routes/market.routes');
+  const webhookRoutes = require('./routes/webhook.routes');
+  const testnetRoutes = require('./routes/testnet.routes');
 
-// Enable CORS for frontend application
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'https://bot-trading-simulator-6fic.vercel.app',
-  'https://bot-trading-simulator.vercel.app',
-  'https://bot-trading-simulator-6fic-hersariz.vercel.app',
-  // Add any Vercel preview URLs that might be used
-  'https://bot-trading-simulator-git-main-hersariz.vercel.app',
-  'https://bot-trading-simulator-hersariz.vercel.app',
-  // Allow requests with no origin (like mobile apps or curl requests)
-  undefined,
-  'null'
-];
+  app = express();
 
-// Use simpler CORS config for troubleshooting
-app.use(cors({
-  origin: '*', // Allow all origins for troubleshooting
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-  credentials: true,
-  maxAge: 86400 // 24 hours
-}));
+  // Middleware
+  app.use(morgan('dev'));
+  app.use(cors({ origin: '*' })); // Simplified CORS
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-// Pre-flight OPTIONS handling for all routes
-app.options('*', cors({
-  origin: '*', // Allow all origins for troubleshooting
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-  credentials: true,
-  maxAge: 86400 // 24 hours
-}));
-
-// Log all requests for debugging in production
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Origin: ${req.get('origin') || 'N/A'}`);
-  next();
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+  // Health check endpoint that works even if routes fail
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
-});
 
-// API routes
-app.use('/api/config', configRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/market-data', marketDataRoutes);
-app.use('/api/webhook', webhookRoutes);
-app.use('/api/testnet', testnetRoutes);
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err.stack);
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal Server Error',
-      status: err.status || 500
-    }
-  });
-});
-
-// 404 handler
-app.use((req, res) => {
-  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    error: {
-      message: 'Route not found',
-      status: 404,
-      path: req.originalUrl
-    }
-  });
-});
-
-// For Vercel serverless deployment
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  // API routes
+  app.use('/api/config', configRoutes);
+  app.use('/api/orders', orderRoutes);
+  app.use('/api/market', marketDataRoutes); // Corrected path
+  app.use('/api/webhook', webhookRoutes);
+  app.use('/api/testnet', testnetRoutes);
+  
+} catch (error) {
+  console.error('!!! SERVER INITIALIZATION FAILED !!!', error);
+  serverInitializationError = error;
 }
 
-module.exports = app; 
+// Export a single handler function for Vercel
+module.exports = (req, res) => {
+  if (serverInitializationError) {
+    return res.status(500).json({
+      error: 'SERVER_INITIALIZATION_FAILED',
+      message: serverInitializationError.message,
+      stack: serverInitializationError.stack
+    });
+  }
+  // If app is initialized, let it handle the request
+  return app(req, res);
+}; 
